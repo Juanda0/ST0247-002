@@ -35,6 +35,12 @@ class GraphAl:
     for d in self.lista[source]:
       if d[0] == destination:
         return d[1]
+  
+  def nombrarVertices(self, nombresVertices):
+    if len(nombresVertices) == len(self.lista):
+      self.nombresVertices = nombresVertices
+    else:
+      print("Los nombres exceden el tamaño de la lista")
 
   def addArc(self, sourceNode, destinationNode, weight = 1):
     source = self.nombresVertices.index(sourceNode)
