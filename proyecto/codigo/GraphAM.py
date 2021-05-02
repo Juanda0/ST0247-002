@@ -1,3 +1,5 @@
+import matplotlib as mpl
+import os
 import matplotlib.pyplot as plt
 import random
 
@@ -64,11 +66,12 @@ class GraphAM:
   def showGraph(self,paths, colors, mode = 'Map'):
     stations = ['m', 'orange', 'yellow']
     if mode == 'Map':
-      cliente = 'c'
+      cliente = '#55db88'
     elif mode == 'Paths':
       cliente = 'r'
-      #stations = ['w' for i in range(3)]
 
+    plt.xlim(-5,125)
+    plt.ylim(-5,125)
     flatten_paths = GraphAM.flatten(paths)
     print(len(flatten_paths))
     print(len(paths))
@@ -81,7 +84,6 @@ class GraphAM:
       elif infoNode[3] == 'c':
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color=cliente)
       elif infoNode[3] == 's':
-        continue #Remove to visualize stations
         if infoNode[4] == '0':
           plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[0])
         elif infoNode[4] == '1':
@@ -89,8 +91,9 @@ class GraphAM:
         elif infoNode[4] == '2':
           plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[2])
 
-    if mode == 'Paths':   
+    if mode == 'Paths':  
       auxCol = 0
+      auxFig = 1
       for auxPath in paths:
         x_coordinates = []
         y_coordinates = []
@@ -100,9 +103,13 @@ class GraphAM:
           if i != 0:
             x_coordinates.append(float(self.infoNodes[i][1]))
             y_coordinates.append(float(self.infoNodes[i][2]))
-
+        plt.xlim(-5,125)
+        plt.ylim(-5,125)
         plt.scatter(x_coordinates, y_coordinates, color=colors[auxCol])
         plt.plot(x_coordinates, y_coordinates, color=colors[auxCol])
+        
+        #plt.savefig('Gif2/fig'+str(auxFig)+'.svg')
         auxCol += 1
+        auxFig += 1
       
     plt.show()  

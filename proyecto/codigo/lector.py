@@ -15,7 +15,6 @@ class lector:
 
     carSpeed = parameters['speed']
     infoNodes = re.findall("\d+ (\w+) (\d+.\d+) (\d+.\d+) (\w) (\d)", textAsString)#Regular expression for info of nodes
-    print(infoNodes)
 
     grafo = gAM.GraphAM(int(parameters['n']), infoNodes, parameters)
     for idNode in range(len(infoNodes)):
