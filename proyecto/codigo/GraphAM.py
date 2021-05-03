@@ -85,11 +85,11 @@ class GraphAM:
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color=cliente)
       elif infoNode[3] == 's':
         if infoNode[4] == '0':
-          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[0])
+          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[2])
         elif infoNode[4] == '1':
           plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[1])
         elif infoNode[4] == '2':
-          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[2])
+          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="D", color=stations[0])
 
     if mode == 'Paths':  
       auxCol = 0

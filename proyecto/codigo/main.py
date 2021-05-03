@@ -2,6 +2,7 @@ import GraphAM as gAM
 import lector as lt
 import vehicleRouting as vr
 
+
 #Datasets/tc2c320s24cf0.txt
 #Datasets/tc2c320s24cf1.txt
 #Datasets/tc2c320s24cf4.txt
@@ -15,27 +16,23 @@ import vehicleRouting as vr
 #Datasets/tc2c320s38ct1.txt
 #Datasets/tc2c320s38ct4.txt
 #Datasets/dummy.txt
-
 class main: 
   def main():
-    grafo = lt.lector.crearGrafoTxt("Datasets/tc2c320s38cf4.txt")
+
+    grafo = lt.lector.crearGrafoTxt("Datasets/tc2c320s38ct4.txt")
     aux = vr.vehicleRouting(grafo)
     a = aux.vehicleRouting()
     paths = a[0]
     times = a[1]
+    batterys = a[2]
     colors = []
-    for i in range(34):
+    print(f"AAAAAAAAAAAAAA {grafo.parameters['chargingTimes'][0][0]} ")
+    for i in range(40):
       colors.append(gAM.GraphAM.rand_web_color_hex())
-    totalTime = main.totalTimePath(times)
-    print(f'El tiempo total que usan las rutas son: {round(totalTime,1)} horas')
+    print(aux.seed)
+    #print(times)
+    #print(batterys)
     grafo.showGraph(paths,colors, mode = 'Paths')  
-
-  def totalTimePath(times):
-    timePath = 0
-    for i in times:
-      timePath += i
-    return timePath
-
 
 
 if __name__ == "__main__":
