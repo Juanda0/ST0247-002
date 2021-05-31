@@ -74,8 +74,6 @@ class GraphAM:
     plt.ylim(-5,125)
     flatten_paths = GraphAM.flatten(paths)
     for i in range(len(self.infoNodes)):
-      if self.infoNodes[i][3] == 'c':
-          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color='grey')
       if i in flatten_paths and i != 0 and mode == 'Paths' and self.infoNodes[i][3] != 's':   
         continue
       infoNode = self.infoNodes[i]
@@ -108,7 +106,7 @@ class GraphAM:
         plt.scatter(x_coordinates, y_coordinates, color=colors[auxCol])
         plt.plot(x_coordinates, y_coordinates, color=colors[auxCol])
         
-        plt.savefig('Gif2/fig'+str(auxFig)+'.svg')
+        #plt.savefig('Gif2/fig'+str(auxFig)+'.svg')
         auxCol += 1
         auxFig += 1
       
