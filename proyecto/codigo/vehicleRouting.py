@@ -21,15 +21,15 @@ class vehicleRouting:
     bestStations = {'0':None, '1':None, '2':None}
     bestStationTimes = {'0':float('inf'), '1':float('inf'), '2':float('inf')}
     bestStationChargingTimes = {'0':0, '1':0, '2':0}
-
     breakPointUsed = 16000
 
-    for station in self.grafo.getSuccessors(startNode):
+    for station in self.grafo.getSuccessors(startNode,visited):
       if self.grafo.infoNodes[station][3] == 's':
         peso = self.grafo.getWeight(startNode, station)[1]
         if peso < bestStationTimes[self.grafo.infoNodes[station][4]] and (battery - (self.grafo.getWeight(startNode, station)[0]*self.grafo.parameters['r'])) > 0:
           bestStationTimes[self.grafo.infoNodes[station][4]] = peso
           bestStations[self.grafo.infoNodes[station][4]] = station
+
        
     
     for i in bestStationTimes.keys():
@@ -37,6 +37,7 @@ class vehicleRouting:
         batteryAux = battery - (self.grafo.getWeight(startNode, bestStations[i])[0] * self.grafo.parameters['r'])
         batteryAux = breakPointUsed- batteryAux
         bestStationChargingTimes[i] = batteryAux * float(self.grafo.parameters['chargingTimes'][int(i)][2])/breakPointUsed
+
     bestStation = None
     bestTime = float('inf')
      
@@ -46,6 +47,7 @@ class vehicleRouting:
         bestStation = bestStations[i]
         chargingTime = bestStationChargingTimes[i]
         bestTime = bestStationTimes[i]+bestStationChargingTimes[i]
+    
 
     if bestStation is None:
       return None
@@ -56,7 +58,7 @@ class vehicleRouting:
   def getNearestClient(self, startNode, visited, timePath):
     mini = deque([float('inf') for i in range(self.k)])
     minSuccessors = deque([None for i in range(self.k)])
-    for successor in self.grafo.getSuccessors(startNode):
+    for successor in self.grafo.getSuccessors(startNode,visited):
       if visited[successor] or self.grafo.infoNodes[successor][3] != 'c':
         continue
       for i in range(self.k):
@@ -67,7 +69,8 @@ class vehicleRouting:
           mini.pop()
           minSuccessors.pop()
           break
-    selectOne = random.randrange(0,self.k) # cambiame
+
+    selectOne = random.randrange(0,self.k)
     while (selectOne > 0):
       if minSuccessors[selectOne] is None:
         selectOne -= 1
@@ -76,56 +79,32 @@ class vehicleRouting:
     return minSuccessors[selectOne]
 
 
-  def getMiddleStation(self,startNode,nearestClient,timePath, battery,visited):
-    bestStations = {'0':None, '1':None, '2':None}
-    bestStationWeights = {'0':float('inf'), '1':float('inf'), '2':float('inf')}
-    bestStationsTimes = {'0':0, '1':0, '2':0}
-    bestStationChargingTimes = {'0':0, '1':0, '2':0}
-
-    breakPointUsed = 16000
-    breakPointID = 2
-    if startNode != 0:
-      if battery < 13600:
-        breakPointUsed = 13600
-        breakPointID = 0
-      if battery > 13600 and battery < 15200:
-        breakPointID = 1
-        breakPointUsed = 15200
-    
-    midPoint = (abs(float(self.grafo.infoNodes[nearestClient][1])-float(self.grafo.infoNodes[startNode][1])),abs(float(self.grafo.infoNodes[nearestClient][2])-float(self.grafo.infoNodes[startNode][2])))
-
-    for station in self.grafo.getSuccessors(nearestClient):
-      if self.grafo.infoNodes[station][3] == 's':
-        peso = math.sqrt(((float(self.grafo.infoNodes[station][1])-midPoint[0])**2) + ((float(self.grafo.infoNodes[station][2])-midPoint[1])**2))
-        #if peso > 1:
-        #  peso = (aux/2)/self.grafo.getWeight(startNode,station)[0] 
-
-        if peso < bestStationWeights[self.grafo.infoNodes[station][4]] and (battery - (self.grafo.getWeight(startNode, station)[0]*self.grafo.parameters['r'])) > 0:
-          bestStationWeights[self.grafo.infoNodes[station][4]] = peso
-          bestStations[self.grafo.infoNodes[station][4]] = station
-       
-    
-    for i in bestStationsTimes.keys():
-      if bestStations[i] is not None:
-        batteryAux = battery - (self.grafo.getWeight(startNode, bestStations[i])[0] * self.grafo.parameters['r'])
-        batteryAux = breakPointUsed - batteryAux
-        bestStationsTimes[i] += (self.grafo.getWeight(startNode,bestStations[i])[1])
-        bestStationChargingTimes[i] = batteryAux * float(self.grafo.parameters['chargingTimes'][int(i)][breakPointID])/breakPointUsed
-
+  def getMiddleStation(self,startNode,nearestClient,timePath,visited, battery):
     bestStation = None
+    batteryReturned = None
     bestTime = float('inf')
-     
-    
-    for i in bestStationsTimes.keys():
-      if bestStationsTimes[i]+bestStationChargingTimes[i] < bestTime and bestStationChargingTimes[i] > 0:
-        bestStation = bestStations[i]
-        chargingTime = bestStationChargingTimes[i]
-        bestTime = bestStationsTimes[i]+bestStationChargingTimes[i]
+    bestChargingTime = float('inf')
+    breakPointUsed = 16000
+    for station in self.grafo.getSuccessors(startNode,visited):
+      if self.grafo.infoNodes[station][3] == 's':
+        identifier = self.grafo.infoNodes[station][4]
+        batteryRemaining = battery - (self.grafo.getWeight(startNode, station)[0]*self.grafo.parameters['r'])
 
+        if startNode == 0:
+          batteryToCharge = self.grafo.getWeight(station, nearestClient)[0]*self.grafo.parameters['r']
+        else:
+          batteryToCharge = breakPointUsed - batteryRemaining
+        
+        chargingTime = batteryToCharge *float(self.grafo.parameters['chargingTimes'][int(identifier)][2])/breakPointUsed
+        time = self.grafo.getWeight(startNode, station)[1] +  chargingTime  + self.grafo.getWeight(nearestClient, station)[1]
+        if time < bestTime and (battery - (self.grafo.getWeight(startNode, station)[0]*self.grafo.parameters['r'])) > 0 and time + timePath < self.grafo.parameters['Tmax'] and batteryRemaining + batteryToCharge <= 16000:
+          bestTime = time
+          bestStation = station
+          bestChargingTime = chargingTime
+          batteryReturned = batteryRemaining + batteryToCharge
     if bestStation is None:
-      return self.getBestStation(startNode, timePath, battery, visited) #Fase de prueba xd
-      
-    return {'bestStation':bestStation, 'chargingTime':chargingTime, 'breakPointUsed':breakPointUsed}
+      return None
+    return {'bestStation':bestStation, 'chargingTime':bestChargingTime, 'breakPointUsed':batteryReturned}
 
   def goBackwards(self, path, startNode, timePath, battery, visited, typeN, previousBatterys, assumption = None, help=0):
     aux1 = path.pop() #The same as startNode, but we must delete it from the path
@@ -148,11 +127,10 @@ class vehicleRouting:
     return self.vehicleRoutingAux(aux2, path, timePath,visited, battery, typeN, previousBatterys, help)
 
   def tryWithMiddle(self, startNode, timePath, battery, visited, path, previousBatterys, help):
-    getStationData = self.getMiddleStation(startNode,0,timePath, battery,visited)  
+    getStationData = self.getMiddleStation(startNode,0,timePath,visited, battery)  
     
     #Esta es la forma para soportar cuando Middle retorna None
     if getStationData is None:
-      print('Houston, tenemos un problema')
       return self.goBackwards(path, startNode, timePath, battery, visited, 's', previousBatterys, help=help)
 
     timePath += getStationData['chargingTime'] + self.grafo.getWeight(startNode, getStationData['bestStation'])[1] + self.grafo.getWeight(0, getStationData['bestStation'])[1]
@@ -161,7 +139,6 @@ class vehicleRouting:
       timePath -= getStationData['chargingTime'] + self.grafo.getWeight(startNode, getStationData['bestStation'])[1] + self.grafo.getWeight(0, getStationData['bestStation'])[1]
       return self.goBackwards(path, startNode, timePath, battery, visited, 's', previousBatterys, help=help)    #Alternar entre s y d
     else:
-      #print("A VEERRRERERERER")
       previousBatterys.append(getStationData['breakPointUsed'] - battery)
       path.append(getStationData['bestStation'])
       battery = getStationData['breakPointUsed'] -  self.grafo.getWeight(getStationData['bestStation'], 0)[0] * self.grafo.parameters['r']
@@ -171,7 +148,7 @@ class vehicleRouting:
     else:
       return self.vehicleRoutingAux(getStationData['bestStation'], path, timePath,visited, getStationData['breakPointUsed'], 'd', previousBatterys, help)
 
-  def vehicleRouting(self, seed = None):
+  def vehicleRouting(self):
     paths = []
     times = []
     batterys = []
@@ -184,27 +161,20 @@ class vehicleRouting:
         path = [0]
         a  = self.vehicleRoutingAux(0, path,0, visited, self.grafo.parameters['Q'], 'c', help=route)
         path.append(0)
-        if len(path) == 1:
+        if len(path) == 2:
           break
         paths.append(path)
         times.append(a[1])
         batterys.append(a[2])
-        #print(f'{path} Time: {a[1]}  Battery: {a[2]}\n')  #TOOL FOR ANALIS OF PATH
         route += 1
-        if len(paths) == 44:  #LIMITADOR DE PATHS (BORRAR)
-         break
-      #print(visited)
     return paths,times,batterys      
 
   #?? 
   def vehicleRoutingAux(self,startNode, path, timePath,visited, battery, nodeToGo, previousBatterys = [], help=0):
+    
     battery_percentage = battery/int(self.grafo.parameters['breakPoints'][0][3])*100
     #gets the nearest client
     nearestClient = self.getNearestClient(startNode, visited, timePath)
-    if help in (51,52,53):
-      print(f'nearestClient: {nearestClient} TimePath: {timePath} battery: {battery}')
-      print(path)
-
     if battery_percentage < self.b and nodeToGo == 'c' and nearestClient is not None:
       getStationData = self.getBestStation(startNode, timePath, battery, visited)
       if getStationData is not None:
@@ -224,24 +194,22 @@ class vehicleRouting:
 
     #if we have an actual path and we have enough time and energy to come back, return the path and its data
     if nearestClient is None:
-      print("PRUEBA DE QUE NEARESTCLIENT ES NONE")
       timePath += self.grafo.getWeight(startNode, 0)[1] 
       battery -= self.grafo.getWeight(startNode, 0)[0] * self.grafo.parameters['r']
 
       if timePath > self.grafo.parameters['Tmax']: 
-        return self.goBackwards(path, startNode, timePath, battery, visited, 's', previousBatterys,assumption = 0, help=help)
+        return self.goBackwards(path, startNode, timePath, battery, visited, 'd', previousBatterys,assumption = 0, help=help)
 
       if battery < 0:
         timePath -= self.grafo.getWeight(startNode, 0)[1] 
         battery += self.grafo.getWeight(startNode, 0)[0] * self.grafo.parameters['r']
         return self.tryWithMiddle(startNode, timePath, battery, visited, path, previousBatterys, help)
-
+      
       #path.append(0)
       return path,timePath,battery
 
     if startNode == 0 and nodeToGo == 's':
-       print(timePath,'abcd')
-       getStationData = self.getMiddleStation(0,nearestClient,timePath, battery,visited)
+       getStationData = self.getMiddleStation(0,nearestClient,timePath,visited, battery)
        previousBatterys.append(0)
        path.append(getStationData['bestStation'])
        timePath += getStationData['chargingTime'] + self.grafo.getWeight(startNode, getStationData['bestStation'])[1]
@@ -268,7 +236,7 @@ class vehicleRouting:
         a = self.tryWithMiddle(startNode, timePath, battery, visited, path, previousBatterys, help)
         if a is not None:
           return a
-    
+
       #path.append(0)
       return path,timePath,battery
 
@@ -299,12 +267,14 @@ class vehicleRouting:
       previousBatterys.append(breakPointUsed - originalBattery)
       path.append(bestStation)
       return self.vehicleRoutingAux(bestStation, path, timePath,visited, breakPointUsed, 'c', previousBatterys, help)
-      
+
     #actualize timepath with the distance of the nearest client
     timePath += self.grafo.getWeight(startNode, nearestClient)[1] + self.grafo.parameters['st_customer']
-
+      
     #actualize battery with the energy required to go to the nearest client
     battery -= self.grafo.getWeight(startNode, nearestClient)[0] * self.grafo.parameters['r']
+
+    
 
     #if we exceed the time, delete the assumption and go to depot
     if timePath > self.grafo.parameters['Tmax']:
@@ -317,6 +287,7 @@ class vehicleRouting:
       battery += self.grafo.getWeight(startNode, nearestClient)[0] * self.grafo.parameters['r']
       return self.vehicleRoutingAux(startNode, path, timePath,visited, battery, 's', previousBatterys, help)
 
+ 
     path.append(nearestClient)
     visited[nearestClient] = True
     return self.vehicleRoutingAux(nearestClient, path,timePath, visited, battery, 'c', previousBatterys, help)

@@ -38,11 +38,11 @@ class GraphAM:
     self.matriz[sourceID][destinationID] = weight
     self.matriz[destinationID][sourceID] = weight
     
-  def getSuccessors(self, vertice):
+  def getSuccessors(self, vertice, visitados):
     succs = []
     aux = 0
     for i in self.matriz[vertice]:
-      if i[0] != 0:
+      if i[0] != 0 and not visitados[aux]:
         succs.append(aux)
       aux += 1
     return succs
@@ -73,16 +73,15 @@ class GraphAM:
     plt.xlim(-5,125)
     plt.ylim(-5,125)
     flatten_paths = GraphAM.flatten(paths)
-    print(len(flatten_paths))
-    print(len(paths))
     for i in range(len(self.infoNodes)):
-      if i in flatten_paths and i != 0 and mode == 'Paths' and self.infoNodes[i][3] != 's':
+      if self.infoNodes[i][3] == 'c':
+          plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color='grey')
+      if i in flatten_paths and i != 0 and mode == 'Paths' and self.infoNodes[i][3] != 's':   
         continue
       infoNode = self.infoNodes[i]
       if infoNode[3] == 'd':
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="*", color="k")
       elif infoNode[3] == 'c':
-        #print('aaaaaaaaaaaaaaaaaaaaa')
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color=cliente)
       elif infoNode[3] == 's':
         if infoNode[4] == '0':
@@ -109,7 +108,7 @@ class GraphAM:
         plt.scatter(x_coordinates, y_coordinates, color=colors[auxCol])
         plt.plot(x_coordinates, y_coordinates, color=colors[auxCol])
         
-        #plt.savefig('Gif2/fig'+str(auxFig)+'.svg')
+        plt.savefig('Gif2/fig'+str(auxFig)+'.svg')
         auxCol += 1
         auxFig += 1
       
