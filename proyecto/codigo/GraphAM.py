@@ -82,6 +82,7 @@ class GraphAM:
       if infoNode[3] == 'd':
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="*", color="k")
       elif infoNode[3] == 'c':
+        #print('aaaaaaaaaaaaaaaaaaaaa')
         plt.plot(float(infoNode[1]),float(infoNode[2]), marker="h", color=cliente)
       elif infoNode[3] == 's':
         if infoNode[4] == '0':
